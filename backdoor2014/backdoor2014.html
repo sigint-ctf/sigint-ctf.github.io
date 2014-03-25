@@ -307,3 +307,78 @@ Table: the_elusive_flag
 | 9d4dcc5981b17bf37740c7dbabe3b294 |
 +----------------------------------+
 </code></pre>
+
+
+<h2>Misc 250-2</h2>
+
+<blockquote>
+  <p>Username and password based login seemed a bit too monotonous. We developed an
+indigenous image based login system.</p>
+
+<p>The login service is available <a href="http://backdoor.cognizance.org.in/problems/misc250-2/login/">here</a>.</p>
+
+<p>The image below can be used to login as the backdoor user. Unfortunately that
+does not serve any purpose.
+Login as the sdslabs user for a change.</p>
+</blockquote>
+
+<p><img src="backdoor.bmp" alt="backdoor" title="login for backdoor user" /></p>
+
+<p>The first thing that comes to mind is changing the threshold of the image, but
+that did not do anything. OCR also came to mind, but after spending some time 
+in GIMP and unsuccessfully attempting to log in as sdslabs, it seemed very unlikely. 
+So the next thing to be considered was the colors in the image.
+I had a simple java program lying around that I had used some months ago which
+printed the color of each pixel in hex. </p>
+
+<p>Now the image was supposed to be completely black and white, but it had a lot of
+other colors in it. This was because the text in the image was anti-aliased, 
+so I painted over the text with #000000 and it still logged me in as the user backdoor. </p>
+
+<p><img src="try.png" alt="backdoor2" title="this also logs you in as the user backdoor" /></p>
+
+<p>But the image was still not all black, so I examined the pixels again and found
+that they were all either #000000 or #010101. Hmmmm, it just might be a binary
+message.</p>
+
+<pre><code>[rray@gilgamesh backdoor]$ java PixelHex try.png | sort | uniq
+ff000000  
+ff010101
+</code></pre>
+
+<p>Then I opened up and examined all the pixels. All rows except for the top one in
+the pixel grid were completely black, so the message was probably stored in the
+top row. I made a new image with all the pixels changed to #123456 except for
+the ones in the top row and successfully logged in using it.</p>
+
+<p><img src="backdoor3.png" alt="backdoor3" title="this also logs you in" /></p>
+
+<p>I continued changing everything but the first x pixels of the image to #123456
+and it turned out the server would accept the image if the first 80 pixels were
+unchanged. So I printed the first 80 pixels. </p>
+
+<pre><code>[rray@gilgamesh backdoor]$ java EightyPixel backdoor.bmp 
+    000000 010101 010101 000000 000000 000000 010101 000000
+    000000 010101 010101 000000 000000 000000 000000 010101
+    000000 010101 010101 000000 000000 000000 010101 010101
+    000000 010101 010101 000000 010101 000000 010101 010101
+    000000 010101 010101 000000 000000 010101 000000 000000
+    000000 010101 010101 000000 010101 010101 010101 010101
+    000000 010101 010101 000000 010101 010101 010101 010101
+    000000 010101 010101 010101 000000 000000 010101 000000
+    000000 000000 000000 000000 000000 000000 000000 000000
+    000000 000000 000000 000000 000000 000000 000000 000000
+</code></pre>
+
+<p>That looks like it could be a binary code, so I convert all the 010101 to 1 and
+all the 000000 to 0 and get something like 
+    01100010011000010110001101101011011001000110111101101111011100100000000000000000
+which when converted to ascii yields "backdoor".</p>
+
+<p>So then I just converted "sdslabs" to binary, converted the individual 0s to
+the color #000000 and 1s to #010101 and inserted them in the image, making 
+sure that the unused pixels from the first 80 pixels of the image were all set to #000000.</p>
+
+<p>Then I submitted this image to log in as sdslabs and capture the flag.</p>
+
+<p><img src="try3.png" alt="for_flag" title="sdslabs login image" /></p>
