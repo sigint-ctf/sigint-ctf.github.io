@@ -155,6 +155,38 @@ SortBy[FactorInteger@n, Last]
 write(fd, flag_buf, strlen(flag_buf) - 1);
 </code></pre>
 
-<p>This reads in a string one character at a time, then compares it to a password. For each character that matches, <code>v5</code> is incremented. Then, it does some processing on a random variable <code>v7</code> unless <code>v5</code> is zero, and prints out <code>v7</code>. There are several possible approaches to this problem. It might be possible to determine some information about <code>v5</code> given several values of <code>v7</code> for the same string, but that'd be pretty difficult. We can also perform a timing attack on the <code>v5</code> value.</p>
+<p>This reads in a string one character at a time, then compares it to a 12-character password. For each character that matches, <code>v5</code> is incremented. Then, it does some processing on a random variable <code>v7</code> unless <code>v5</code> is zero, and prints out <code>v7</code>. </p>
 
-<h1>unfinished, this'll be up in 30</h1>
+<p>There are several possible approaches to this problem. It might be possible to determine some information about <code>v5</code> given several values of <code>v7</code> for the same string, but that'd be pretty difficult. We can also perform a timing attack on the <code>v5</code> value, since iteration from 1 to <code>0xDEADBEEE</code> takes a significant amount of time. </p>
+
+<p>However, we noted that <code>v7</code> will always be less than 1000 unless <code>v5</code> is greater than zero, and that <code>v7</code> will almost certainly be larger than 1000 if <code>v5</code> is nonzero. We infer that if the value returned is greater than 1000, at least one character matched the password.</p>
+
+<p>So, we must first find a character that is not in the password. The string <code>'aaaaaaaaaaaa'</code> consistently returns numbers under 1000, so we can assume that <code>'a'</code> is not in the password. </p>
+
+<p>Then, we test the strings <code>'baaaaaaaaaaa'</code>, <code>'caaaaaaaaaaa'</code>, and so on until we receive a number greater than 1000 and advance to the next character. We used a script to automate this:</p>
+
+<pre><code>import telnetlib
+import time
+import string 
+
+# t = telnetlib.Telnet('127.0.0.1', 7026)
+t = telnetlib.Telnet('tasks.2014.volgactf.ru', 28111)
+t.read_until('characters\n')
+def try_password(pw):
+    print "trying", pw
+    t.write(pw+'\n')
+    return int(t.read_some(),16)
+
+cs = string.letters+string.punctuation+string.digits+' '
+a = ''
+for i in range(12):
+    for c in cs:
+        s = 'a'*(i)+c+'a'*(12-i-1)
+        if try_password(s) &gt; 1000:
+            a+=c
+            break
+
+print a
+</code></pre>
+
+<p>The password we extracted by this method was <code>S@nd_will2z0</code>, and providing this as the password returns the flag <code>Time_works_for_you</code>. Perhaps a timing attack was the intended solution?</p>

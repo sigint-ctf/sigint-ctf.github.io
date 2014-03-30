@@ -149,6 +149,37 @@ We are provided a binary and a host/port to connect to. The meat of the binary i
 	}
 	write(fd, flag_buf, strlen(flag_buf) - 1);
 
-This reads in a string one character at a time, then compares it to a password. For each character that matches, `v5` is incremented. Then, it does some processing on a random variable `v7` unless `v5` is zero, and prints out `v7`. There are several possible approaches to this problem. It might be possible to determine some information about `v5` given several values of `v7` for the same string, but that'd be pretty difficult. We can also perform a timing attack on the `v5` value.
+This reads in a string one character at a time, then compares it to a 12-character password. For each character that matches, `v5` is incremented. Then, it does some processing on a random variable `v7` unless `v5` is zero, and prints out `v7`. 
 
-# unfinished, this'll be up in 30
+There are several possible approaches to this problem. It might be possible to determine some information about `v5` given several values of `v7` for the same string, but that'd be pretty difficult. We can also perform a timing attack on the `v5` value, since iteration from 1 to `0xDEADBEEE` takes a significant amount of time. 
+
+However, we noted that `v7` will always be less than 1000 unless `v5` is greater than zero, and that `v7` will almost certainly be larger than 1000 if `v5` is nonzero. We infer that if the value returned is greater than 1000, at least one character matched the password.
+
+So, we must first find a character that is not in the password. The string `'aaaaaaaaaaaa'` consistently returns numbers under 1000, so we can assume that `'a'` is not in the password. 
+
+Then, we test the strings `'baaaaaaaaaaa'`, `'caaaaaaaaaaa'`, and so on until we receive a number greater than 1000 and advance to the next character. We used a script to automate this:
+
+	import telnetlib
+	import time
+	import string 
+
+	# t = telnetlib.Telnet('127.0.0.1', 7026)
+	t = telnetlib.Telnet('tasks.2014.volgactf.ru', 28111)
+	t.read_until('characters\n')
+	def try_password(pw):
+		print "trying", pw
+		t.write(pw+'\n')
+		return int(t.read_some(),16)
+
+	cs = string.letters+string.punctuation+string.digits+' '
+	a = ''
+	for i in range(12):
+		for c in cs:
+			s = 'a'*(i)+c+'a'*(12-i-1)
+			if try_password(s) > 1000:
+				a+=c
+				break
+
+	print a
+
+The password we extracted by this method was `S@nd_will2z0`, and providing this as the password returns the flag `Time_works_for_you`. Perhaps a timing attack was the intended solution?
