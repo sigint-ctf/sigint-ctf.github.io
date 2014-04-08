@@ -5,8 +5,6 @@ tagline: "UCSD CTF"
 ---
 {% include JB/setup %}
 
-Welcome to SIGINT
-
 <div class="posts">
   {% for post in site.posts %}
     <h2 style="border-bottom: 1px solid #eee;">
