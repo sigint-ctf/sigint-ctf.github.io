@@ -3,7 +3,10 @@ layout: post
 title: "Nuit Du Hack Quals 2014 Writeups"
 description: ""
 category: writeups
-tags: [nuitduhack2014 2014 nuitduhack]
+tags:
+- nuitduhack2014
+- 2014
+- nuitduhackctf
 ---
 <!--{% include JB/setup %}-->
 

@@ -3,7 +3,10 @@ layout: post
 title: "Backdoor 2014 Writeups"
 description: ""
 category: writeups
-tags: [backdoor2014 2014 backdoorctf]
+tags:
+- backdoor2014
+- 2014
+- backdoorctf
 ---
 <!--{% include JB/setup %}-->
 

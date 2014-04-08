@@ -3,7 +3,10 @@ layout: post
 title: "Volga CTF 2014 Writeups"
 description: ""
 category: writeups
-tags: [volga2014 2014 volgactf]
+tags:
+- volga2014
+- 2014
+- volgactf
 ---
 <!--{% include JB/setup %}-->
 
