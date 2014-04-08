@@ -42,6 +42,8 @@ No need to reverse-engineer this; we can simply use it in the javascript console
     tncms.unscramble('%96 7=28 7@C E9:D 492= :D iQx>A6C2E@C xF=:FD r26D2C s:GFDQ]')
     "The flag for this chal is :"Imperator Iulius Caesar Divus"."
 
+<!--more-->
+
 ### Onion Rings
 
 The hidden service accepts a profile picture upload, and includes the option to load from a non-TOR URL. So, we can ask it to load from our server, and capture the IP of the requestor. 
