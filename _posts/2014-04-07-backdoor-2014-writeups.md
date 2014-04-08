@@ -75,7 +75,7 @@ paranoid.
 
 
 
-<h2>Web 10</h2>
+<h3>Web 10</h3>
 
 <pre><code>[andrew@archa ~]$ curl -v http://backdoor.cognizance.org.in/problems/web10/
 * Hostname was NOT found in DNS cache
@@ -100,7 +100,7 @@ paranoid.
 
 <p>Do you spot the flag?</p>
 
-<h2>Web 30</h2>
+<h3>Web 30</h3>
 
 <pre><code>[andrew@archa ~]$ curl http://backdoor.cognizance.org.in/problems/web30/ -D - -o /dev/null 
 Date: Sun, 23 Mar 2014 02:05:23 GMT
@@ -124,7 +124,7 @@ Sorry , you will never get a flag in your life :P  Not authorized
 Here is a flag : aeba37a3aaffc93567a61d9a67466fdf
 </code></pre>
 
-<h2>Web 50</h2>
+<h3>Web 50</h3>
 
 <p>The PHP script appears to be running a SQL query of the form <code>SELECT FROM QUOTES WHERE quote LIKE '$search';</code></p>
 
@@ -169,7 +169,7 @@ Table: the_flag_is_over_here
 </code></pre>
 
 
-<h2>Web 100-1</h2>
+<h3>Web 100-1</h3>
 
 <p>The server has to retrieve the picture in order to rate it, right? Does it do anything else? Let's listen on port 80 on any server:</p>
 
@@ -194,14 +194,14 @@ Table: the_flag_is_over_here
    &lt;title&gt;Super Secret Page&lt;/title&gt;
    &lt;/head&gt;
    &lt;body&gt;
-     &lt;h2&gt;Super secret page&lt;/h2&gt;
+     &lt;h3&gt;Super secret page&lt;/h3&gt;
  &lt;p&gt;This is a dangerous place. You shouldn't be lurking here. Click &lt;a id="./submit.php"&gt;here&lt;/a&gt; to go back.&lt;/p&gt;
  &lt;!-- By the way, the flag is f556b9a48a3ee914f291f9b98645cb02 --&gt;
    &lt;/body&gt;
  &lt;/html&gt;
 </code></pre>
 
-<h2>Web 300</h2>
+<h3>Web 300</h3>
 
 <p>This problem gives you an interface to check whether a user has registered <a href="http://backdoor.cognizance.org.in/problems/web300/status.php">here</a>. </p>
 
@@ -305,7 +305,7 @@ Table: the_elusive_flag
 </code></pre>
 
 
-<h2>Misc 250-2</h2>
+<h3>Misc 250-2</h3>
 
 <blockquote>
   <p>Username and password based login seemed a bit too monotonous. We developed an
