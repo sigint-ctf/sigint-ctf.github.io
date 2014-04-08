@@ -2,8 +2,8 @@
 layout: post
 title: "Volga CTF 2014 Writeups"
 description: ""
-category: 
-tags: []
+category: writeups
+tags: [volga2014]
 ---
 <!--{% include JB/setup %}-->
 
