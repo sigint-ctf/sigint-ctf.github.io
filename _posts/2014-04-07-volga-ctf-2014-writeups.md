@@ -1,10 +1,13 @@
-<link rel='stylesheet' href='markdown8.css'/>
+---
+layout: post
+title: "Volga CTF 2014 Writeups"
+description: ""
+category: 
+tags: []
+---
+<!--{% include JB/setup %}-->
 
-VolgaCTF Quals 2014 Writeups
-============================
-<a id="joy200"></a>
-Joy 200
--------
+### Joy 200
 
 Japcross.txt resembles a picross/nonogram puzzle. It's a bit large to solve by hand, so we wrote a script to reformat it:
 
@@ -44,13 +47,14 @@ Japcross.txt resembles a picross/nonogram puzzle. It's a bit large to solve by h
 
 Then, we submitted it to an online solver [here](http://www.comp.lancs.ac.uk/~ss/nonogram/auto):
 
-![The solution](joy200.png)
+![The solution](/assets/images/volga2014/joy200.png)
 
 The QR code encodes "longing for you drove me through the stars. Alexei Tolstoy". This entire string was the flag.
 
-<a id="joy300"></a>
-Joy 300
--------
+
+<!--more-->
+
+### Joy 300
 
 CTFy Rocket is a Flappy Bird clone apparently developed in Borland Delphi. The stated goal in the challenge description is to reach the 42nd "parsec". 
 
@@ -90,9 +94,7 @@ The number of times this occurred also proved difficult to calculate, so we focu
 
 After the game began, we patched the binary to set `dword_45CE14` to 256 each time a collision occured. Then, we were able to fly through the level ignoring obstacles. Once we reached the 42nd parsec, the hidden caption was revealed and it contained our flag.
 
-<a id="crypto100"></a>
-Crypto 100
-----------
+### Crypto 100
 
 Initially, this challenge was very difficult. Though the encoding function was easy to analyze and reimplement, decoding the provided plaintext required some algorithmic skill. Here is the original encoding function:
 
@@ -115,14 +117,13 @@ Then, the challenge was updated. The only modification was that primes expressib
 	595865360437951910254909481033;
 
 	SortBy[FactorInteger@n, Last]
-	{{59, 2}, {3889, 3}, {1993357, 7}, {127, 13}, {15569, 59}, {241, 127}, {487, 487}, {7789, 971}, {29, 2219}, {249181, 3889}}
+	{ {59, 2}, {3889, 3}, {1993357, 7}, {127, 13}, {15569, 59}, {241, 127}, {487, 487}, {7789, 971}, {29, 2219}, {249181, 3889} }
 
 This was short enough to solve manually. Rather than calculate the appropriate new primes, I simply encoded A-Z using the service. Examining only prime exponents for now, the solution is `FLUG_NH_IM_R`, leaving `29^2219` unused. `29+241+1949=2219`, so we deduce that the remaining characters are E's. `FLUGENHEIMER` was the flag. 
 
 (The English Wikipedia wordlist included Flugenheimen, but not Flugenheimer)
 
-Exploits 100
-------------
+### Exploits 100
 
 We are provided a binary and a host/port to connect to. The meat of the binary is:
 
@@ -184,8 +185,7 @@ Then, we test the strings `'baaaaaaaaaaa'`, `'caaaaaaaaaaa'`, and so on until we
 
 The password we extracted by this method was `S@nd_will2z0`, and providing this as the password returns the flag `Time_works_for_you`. Perhaps a timing attack was the intended solution?
 
-Exploits 300
-------------
+### Exploits 300
 
 We're challenged to escape a jail, and a few first submissions return Python-style errors. 
 

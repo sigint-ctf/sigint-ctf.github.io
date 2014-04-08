@@ -1,11 +1,13 @@
-<link rel='stylesheet' href='markdown8.css'/>
+---
+layout: post
+title: "Nuit Du Hack Quals 2014 Writeups"
+description: ""
+category: writeups
+tags: [nuitduhack2014]
+---
+<!--{% include JB/setup %}-->
 
-Nuit Du Hack Quals 2014 Writeups
-================================
-<a id="carbonara"></a>
-
-Carbonara
----------
+### Carbonara
 
 We're provided the following cryptic string:
 
@@ -40,9 +42,9 @@ No need to reverse-engineer this; we can simply use it in the javascript console
     tncms.unscramble('%96 7=28 7@C E9:D 492= :D iQx>A6C2E@C xF=:FD r26D2C s:GFDQ]')
     "The flag for this chal is :"Imperator Iulius Caesar Divus"."
 
-<a id="onionrings"></a>
-Onion Rings
------------
+<!--more-->
+
+### Onion Rings
 
 The hidden service accepts a profile picture upload, and includes the option to load from a non-TOR URL. So, we can ask it to load from our server, and capture the IP of the requestor. 
 
@@ -52,10 +54,7 @@ The server's IP was 212.83.153.197. Visiting [http://212.83.153.197/](http://212
 
     The flag.. It is '0hSh1t1r4n0ut0fn00dl35'
 
-<a id="windowsforensics"></a>
-
-Windows Forensics
------------------
+### Windows Forensics
 
 We are given a 400MB Windows pagefile. A few initial attempts along the lines of `strings pagefile.sys | grep flag` turned up quite a lot of results, but no interesting ones. Noticing several Chrome-related strings, we searched the file for URLs. Still, we found nothing interesting. 
 
@@ -88,20 +87,17 @@ Then, ran page_brute on pagefile.sys and reviewed the results using `strings -el
 
 Neither the password nor either of the two hex strings were the flag, so we tried concatenating the two hex strings. `04c0f778e6dd6c0a025e48c9f5f22f87` was the flag. The lowercase flag format gave us a hint for Here Kitty Kitty.
 
-<a id="herekittykitty"></a>
-Here Kitty Kitty
-----------------
+### Here Kitty Kitty
 
 In lieu of a writeup, we offer the following two images, and leave the solution as an exercise to the reader:
 
-![waveform](kitty-waveform.png)
+![waveform](/assets/images/nuitduhack2014/kitty-waveform.png)
 
-![morse code](morse.png)
+![morse code](/assets/images/nuitduhack2014/morse.png)
 
 Unfortunately, `5BC925649CB0188F52E617D70929191C` was not accepted. We tried HashCat dictionary and bruteforce attacks without success. After solving Windows Forensics, we tried submitting as lowercase, which was successful. Case-sensitivity isn't fun!
 
-BigMomma
---------
+### BigMomma
 
 Though we had the server binary, and briefly attempted to reverse it, we were able to identify how it worked by playing around with it for a few minutes.
 
@@ -147,4 +143,3 @@ Though a script ultimately would have been a better idea, we figured at this poi
     4dM1N15TR4T0R
     Username correct, what is the password?THEpasswordISreallyLONGbutYOUllGETtoTHEendOFitEVENTUALLY
     Well done! Here is the flag: YoMamaIsLikeHTML,SmallHeadAndHugeBody
-
