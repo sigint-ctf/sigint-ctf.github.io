@@ -1,16 +1,18 @@
 ---
 layout: post
-title: "Nuit Du Hack Quals 2014 Writeups"
+title: "PlaidCTF 2014 Writeups"
 description: ""
 category: writeups
 tags:
-- nuitduhack2014
+- plaidctf2014
 - 2014
-- nuitduhackctf
+- plaidctf
+- pctf
 ---
 <!--{% include JB/setup %}-->
 
 <a href="polygonshifter"></a>
+
 ### Web 100 - PolygonShifter
 
 We're presented with a "bot-unfriendly" example login page. The names of the username and password fields in the source are generated with each page, along with the action path:
