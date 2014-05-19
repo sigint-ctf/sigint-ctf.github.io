@@ -1,11 +1,13 @@
 ---
 layout: post
-title: "DEFCON CTF 2014 Quals Writeups"
+title: "DEFCON 2014 Quals : polyglot"
 description: ""
 category: writeups
 tags:
-- defcon
+- defconquals
+- defconquals2014
 - 2014
+- gynophage
 - writeup
 ---
 <!--{% include JB/setup %}-->
