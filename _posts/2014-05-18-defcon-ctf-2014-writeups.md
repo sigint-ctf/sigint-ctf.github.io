@@ -150,7 +150,6 @@ Our PPC shellcode is below. We had to hardcode the address of the BSS section of
 
 We used a Python script to handle the assembly of the combined binary and the interaction with the server. `shellcode-ppc` was compiled manually on a different machine and moved over before each run. This is the script we used:
 
-```python
     import sys
     import os
     import time
@@ -249,4 +248,3 @@ We used a Python script to handle the assembly of the combined binary and the in
             sys.stdout.write(con.read_one(15))
 
     test_live()
-```
