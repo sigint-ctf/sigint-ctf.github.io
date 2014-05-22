@@ -52,9 +52,10 @@ Basic binary service? Sure why not.
 
 
 Weird fake cisco router thing. Notable looking commands, shell, set, show, enable.
-*  shell is fake, prints "bash-3.2$" then laughs at you.
-*  enable sure does take a password to enable admin access
-*  set sets 'variables', show shows them
+
+1. shell is fake, prints "bash-3.2$" then laughs at you.
+2. enable sure does take a password to enable admin access
+3. set sets 'variables', show shows them
 
 We started with enable, since sometimes you can get back more data than you send!
 
