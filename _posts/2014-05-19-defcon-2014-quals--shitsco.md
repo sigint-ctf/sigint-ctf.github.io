@@ -28,7 +28,7 @@ Basic binary service? Sure why not.
 	 oooooooo8 oooo        o88    o8
 	 888         888ooooo   oooo o888oo  oooooooo8    ooooooo     ooooooo
 	 888oooooo  888   888   888  888   888ooooooo  888     888 888     888
-			888 888   888   888  888           888 888         888     888
+	        888 888   888   888  888           888 888         888     888
 	 o88oooo888 o888o o888o o888o  888o 88oooooo88    88ooo888    88ooo88
 
 	Welcome to Shitsco Internet Operating System (IOS)
