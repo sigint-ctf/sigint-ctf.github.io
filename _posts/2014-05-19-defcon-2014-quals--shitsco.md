@@ -69,6 +69,8 @@ Enable seems not too exciting, though it does appear to set an admin bit.
 
 Notably, their read_input function doesn't properly null terminate strings, so sometimes we can get a few bytes of stack data out of the %s on printf. Unfortunately, this turns out to be completely worthless.
 
+[addendum] I later realized that this IS useful, I knew I was reading the result of strcmp, but was lazy and didn't think about the fact that strcmp tells you WHERE the difference starts, so you can trivially brute force the password only 1 character at a time. This would've also worked.
+
 On to the other odd looking features of 'set' and 'show'.
 
 Show does something like:
