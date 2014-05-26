@@ -1,0 +1,59 @@
+00000000 <foo>:
+   0:   55                      push   ebp
+   1:   89 e5                   mov    ebp,esp
+   3:   53                      push   ebx
+   4:   83 ec 24                sub    esp,0x24
+   7:   c7 45 f0 00 00 00 00    mov    DWORD PTR [ebp-0x10],0x0
+   e:   c7 45 e8 00 00 00 00    mov    DWORD PTR [ebp-0x18],0x0
+  15:   c7 45 f4 00 00 00 00    mov    DWORD PTR [ebp-0xc],0x0
+  1c:   eb 3b                   jmp    59 <foo+0x59>
+  1e:   c6 45 ef ff             mov    BYTE PTR [ebp-0x11],0xff
+  22:   8b 45 f4                mov    eax,DWORD PTR [ebp-0xc]
+  25:   89 45 f0                mov    DWORD PTR [ebp-0x10],eax
+  28:   eb 12                   jmp    3c <foo+0x3c>
+  2a:   8b 55 f0                mov    edx,DWORD PTR [ebp-0x10]
+  2d:   8b 45 08                mov    eax,DWORD PTR [ebp+0x8]
+  30:   01 d0                   add    eax,edx
+  32:   0f b6 00                movzx  eax,BYTE PTR [eax]
+  35:   30 45 ef                xor    BYTE PTR [ebp-0x11],al
+  38:   83 45 f0 01             add    DWORD PTR [ebp-0x10],0x1
+  3c:   8b 5d f0                mov    ebx,DWORD PTR [ebp-0x10]
+  3f:   8b 45 08                mov    eax,DWORD PTR [ebp+0x8]
+  42:   89 04 24                mov    DWORD PTR [esp],eax
+  45:   e8 fc ff ff ff          call   46 <foo+0x46>
+  4a:   39 c3                   cmp    ebx,eax
+  4c:   72 dc                   jb     2a <foo+0x2a>
+  4e:   0f be 45 ef             movsx  eax,BYTE PTR [ebp-0x11]
+  52:   01 45 e8                add    DWORD PTR [ebp-0x18],eax
+  55:   83 45 f4 01             add    DWORD PTR [ebp-0xc],0x1
+  59:   8b 5d f4                mov    ebx,DWORD PTR [ebp-0xc]
+  5c:   8b 45 08                mov    eax,DWORD PTR [ebp+0x8]
+  5f:   89 04 24                mov    DWORD PTR [esp],eax
+  62:   e8 fc ff ff ff          call   63 <foo+0x63>
+  67:   39 c3                   cmp    ebx,eax
+  69:   72 b3                   jb     1e <foo+0x1e>
+  6b:   83 c4 24                add    esp,0x24
+  6e:   5b                      pop    ebx
+  6f:   5d                      pop    ebp
+  70:   c3                      ret
+
+
+00000071 <bar>:
+  71:   55                      push   ebp
+  72:   89 e5                   mov    ebp,esp
+  74:   83 ec 10                sub    esp,0x10
+  77:   c7 45 f8 00 00 00 00    mov    DWORD PTR [ebp-0x8],0x0
+  7e:   eb 15                   jmp    95 <bar+0x24>
+  80:   8b 55 fc                mov    edx,DWORD PTR [ebp-0x4]
+  83:   8b 45 08                mov    eax,DWORD PTR [ebp+0x8]
+  86:   01 d0                   add    eax,edx
+  88:   0f b6 00                movzx  eax,BYTE PTR [eax]
+  8b:   0f b6 c0                movzx  eax,al
+  8e:   01 45 fc                add    DWORD PTR [ebp-0x4],eax
+  91:   83 45 f8 01             add    DWORD PTR [ebp-0x8],0x1
+  95:   8b 45 fc                mov    eax,DWORD PTR [ebp-0x4]
+  98:   3b 45 0c                cmp    eax,DWORD PTR [ebp+0xc]
+  9b:   72 e3                   jb     80 <bar+0xf>
+  9d:   8b 45 f8                mov    eax,DWORD PTR [ebp-0x8]
+  a0:   c9                      leave
+  a1:   c3                      ret
