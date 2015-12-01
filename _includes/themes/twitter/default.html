@@ -12,44 +12,59 @@
     <!-- HTML5 shim, for IE6-8 support of HTML elements -->
     <!--[if lt IE 9]>
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+      <![endif]-->
 
-    <!-- styles -->
-    <link href="{{ ASSET_PATH }}/css/theme.css" rel="stylesheet" type="text/css">
-    <link href="{{ ASSET_PATH }}/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
-    <link href="{{ ASSET_PATH }}/css/syntax.css" rel="stylesheet" type="text/css">
+      <!-- styles -->
+      <link href="{{ ASSET_PATH }}/css/theme.css" rel="stylesheet" type="text/css">
+      <link href="{{ ASSET_PATH }}/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
+      <link href="{{ ASSET_PATH }}/css/syntax.css" rel="stylesheet" type="text/css">
 
-    <!-- fav and touch icons -->
-  <!-- Update these with your own images
-    <link rel="shortcut icon" href="images/favicon.ico">
-    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
-  -->
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+      <!-- Latest compiled and minified JavaScript -->
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-    <!-- atom & rss feed -->
-    <link href="{{ BASE_PATH }}{{ site.JB.atom_path }}" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
-    <link href="{{ BASE_PATH }}{{ site.JB.rss_path }}" type="application/rss+xml" rel="alternate" title="Sitewide RSS Feed">
+      <!-- fav and touch icons -->
+      <!-- Update these with your own images
+        <link rel="shortcut icon" href="images/favicon.ico">
+        <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+        <link rel="apple-touch-icon" sizes="72x72" href="images/apple-touch-icon-72x72.png">
+        <link rel="apple-touch-icon" sizes="114x114" href="images/apple-touch-icon-114x114.png">
+      -->
+
+      <!-- atom & rss feed -->
+      <link href="{{ BASE_PATH }}{{ site.JB.atom_path }}" type="application/atom+xml" rel="alternate" title="Sitewide ATOM Feed">
+      <link href="{{ BASE_PATH }}{{ site.JB.rss_path }}" type="application/rss+xml" rel="alternate" title="Sitewide RSS Feed">
 
   </head>
 
   <body>
     <nav class="navbar navbar-fixed-top">
-        <div class="container-fluid">
-          <div class ="navbar-header">
+      <div class="container-fluid">
+        <div class ="navbar-header">
+          <button type="button" class="navbar-toggle collapsed"
+                                data-toggle="collapse"
+                                data-target="#navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
           <a class="navbar-brand" href="{{ HOME_PATH }}">
             <img src="{{ ASSET_PATH }}/sigint-logo.png" alt="{{ site.title }}">
           </a>
-          </div>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navbar-collapse">
           <ul class="nav navbar-nav">
             {% assign pages_list = site.pages %}
             {% assign group = 'navigation' %}
             {% include JB/pages_list %}
           </ul>
         </div>
+      </div>
     </nav>
 
-    <div class="container-narrow">
+    <div class="container">
 
       <div class="content">
         {{ content }}
@@ -57,8 +72,8 @@
       <hr>
       <footer>
         <p>&copy; {{ site.time | date: '%Y' }} {{ site.author.name }}
-          with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
-          and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
+        with help from <a href="http://jekyllbootstrap.com" target="_blank" title="The Definitive Jekyll Blogging Framework">Jekyll Bootstrap</a>
+        and <a href="http://twitter.github.com/bootstrap/" target="_blank">Twitter Bootstrap</a>
         </p>
       </footer>
 
