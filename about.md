@@ -1,6 +1,7 @@
 ---
 layout: page
 title: "About Us"
+permalink: /about/
 group: navigation
 ---
 {% include JB/setup %}
