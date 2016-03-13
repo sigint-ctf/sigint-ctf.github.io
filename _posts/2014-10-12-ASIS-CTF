@@ -1,0 +1,89 @@
+Secure Hobby 250, Asis-CTF 2014
+
+In this problem, we are presented with a linux 64-bit ELF binary running as a service, and we can connect to it via netcat.
+The binary is provided to us for offline testing, thankfully. After downloading this binary and running it through strace,
+we can see which port it is opening up, so we can connect to it locally via netcat.
+
+$ strace ./hobby_8524ad2ae5fde9a43d7e6b1956c8099b
+
+<output trimmed>
+socket(PF_INET, SOCK_STREAM, IPPROTO_IP) = 3
+setsockopt(3, SOL_SOCKET, SO_REUSEADDR, [1], 4) = 0
+bind(3, {sa_family=AF_INET, sin_port=htons(35565), sin_addr=inet_addr("0.0.0.0")}, 16) = 0
+<snip>
+
+So this program listens on port 35565, as we can see from the syscall to bind().
+Let's run the hobby binary in one terminal, and connect to it in the other terminal.
+
+$ ./hobby_8524ad2ae5fde9a43d7e6b1956c8099b
+
+In another terminal:
+
+$ nc localhost 35565
+
+-------------------------------------------------
+| 	Welcome to Super Secure Auth Engine	|
+-------------------------------------------------
+
+1) Register
+2) Login check
+3) Show my secret
+
+Enjoy ;)
+
+Interesting. Let's examine this program further...
+
+-------------------------------------------------
+| 	Welcome to Super Secure Auth Engine	|
+-------------------------------------------------
+
+1) Register
+2) Login check
+3) Show my secret
+
+Enjoy ;)
+1
+Can't open namak file.
+Sorry!
+Can't open flag file.
+Sorry!
+
+Well this is interesting indeed! Clearly this program is reading from a flag file, and we need to figure out how to get
+to it. Let's satisfy this program and put "flag" and "namak" files in the same directory (create these two files in the
+directory and put "flag" and "namak" inside, respectively). This should make the warning go away (which it does). Let's
+rerun and go with the "register" option.
+
+<snip>
+Enjoy ;)
+1
+Enter username: cchung
+Your key for login is: 59324e6f6457356e121cf5d922f6039d0338820b357e7353
+
+Let's try to plug this in the option 3?
+
+Enjoy ;)
+3
+Enter key: 59324e6f6457356e121cf5d922f6039d0338820b357e7353
+You don't have any secret! :(
+
+It seems like it would really help if we can put the "admin" key in... But if we try to register a user called "admin"
+the program says "Kidding me? :(" back to us. Now the first attempt was to try to manually reverse the algorithm used
+to create these keys in the first place, but this was too complicated. Further analysis (using the strings utility)
+helps show that this binary is UPX packed. Indeed, opening this binary in IDA shows lots of gibberish. We can just use
+"upx -d hobbyfilehere".
+
+A quick note to the reader: I went down many wrong paths trying to find the solution (paths that I will not discuss here).
+I just want to say that it took a very long time for me to reach the (very) simple solution. NEVER GIVE UP!!
+
+Unfortunately, there are some strings in the program that don't seem to be displayed in the "strings" window of IDA. As
+I discovered, this is due to an obfuscation attempt by the program developers, as the strings are manually loaded onto the
+stack in parts. However, the welcome banner is a string that wasn't obfuscated in this manner. Using IDA's cross 
+references, I found the function that is responsible for displaying this and handling user input. I followed the function
+that is called when the user "registers", and I found the conditional jump that is responsible for displaying
+"Kidding me? :(" or printing back the user's key. Using IDA's remote linux debugging, I attached IDA to the CHILD process
+of hobby, set a breakpoint at that particular conditional jump (a jz), and then ran the program. After inputting the
+user "admin", the program hit my breakpoint and was going to jump to the block where the program would say "kidding me?".
+Here, I forced the instruction pointer into the other block, where it would print my key using the appropriate hashing
+algorithm for the keys. And lo and behold, I am presented with the admin key.
+
+At this point, I just plugged the key back into the program, and was then presented with the flag.
